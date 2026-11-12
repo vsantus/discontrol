@@ -27,8 +27,8 @@ Chrome 116+ e uma chamada ativa no Discord Web são necessários. A aba original
 ## Histórico
 | Versão | Alterações |
 | --- | --- |
-| **0.6.0** | Ícone final próprio com D, semicírculos e microfone desativado; PNG transparente |
-| 0.5.0 | Rebranding para Discontrol by devsantos |
+| **0.6.1** | Ícone final próprio com D, semicírculos e microfone desativado; PNG transparente |
+| 0.6.0 | Identidade própria da extensão e publicação inicial no GitHub |\n| 0.5.0 | Rebranding para Discontrol by devsantos |
 | 0.4.5 | Alternativa de mascote |
 | 0.4.4 | Correção do botão de retorno ao Discord |
 | 0.4.3 | Nomes padronizados e documentação |
