@@ -1,0 +1,13 @@
+{
+  "name": "discontrol",
+  "version": "0.6.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc -p tsconfig.json && node scripts/copy-assets.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}
