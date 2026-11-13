@@ -1,4 +1,4 @@
-// Discontrol v0.6.1 — by devsantos
+// Discontrol v0.6.2 — by devsantos
 // Source of the Chrome extension (Manifest V3).
 function openDiscontrol(): void {
   type PipAPI = { window: Window | null; requestWindow(o:{width:number;height:number}):Promise<Window> };
@@ -14,7 +14,9 @@ function openDiscontrol(): void {
     const css=doc.createElement("style");css.textContent=`
       *{box-sizing:border-box}html,body{margin:0;background:#101116;color:#f2f3f5;font:12px system-ui,sans-serif}
       body{padding:10px}main{background:#191b22;border:1px solid #2b2e39;border-radius:14px;padding:12px 13px;display:grid;gap:13px}
-      .status{display:flex;align-items:center;justify-content:center;gap:7px;font-size:11px;color:#bec4cf;min-height:14px}
+      .status{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:11px;color:#bec4cf;min-height:14px;min-width:0}
+      .channel{display:block;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f2f3f5;font-size:11px;font-weight:600;text-align:left}
+      .connection{display:flex;align-items:center;gap:6px;flex:none;white-space:nowrap;font-size:10px}
       .dot{width:8px;height:8px;border-radius:100%;background:#858b97}.dot.connected{background:#35c77d}.dot.partial{background:#e7a536}
       .controls{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
       button{border:1px solid #363a48;background:#252934;color:#eef0f4;border-radius:12px;min-width:0;height:48px;padding:0;display:grid;place-items:center;cursor:pointer}
@@ -32,7 +34,10 @@ function openDiscontrol(): void {
       hangup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3.3 11.5c4.8-4.6 12.6-4.6 17.4 0 1 .9 1 2.2.1 3l-1.8 1.6c-.7.6-1.7.6-2.4 0l-1.5-1.4a1.7 1.7 0 0 1-.5-1.4l.1-1.4a10 10 0 0 0-5.4 0l.1 1.4a1.7 1.7 0 0 1-.5 1.4l-1.5 1.4c-.7.6-1.7.6-2.4 0l-1.8-1.6c-.9-.8-.9-2.1.1-3Z"/></svg>'
     };
     const main=doc.createElement("main"), status=doc.createElement("div"), dot=doc.createElement("span"), label=doc.createElement("span"), controls=doc.createElement("div");
-    status.className="status";dot.className="dot";status.append(dot,label);controls.className="controls";
+    status.className="status";dot.className="dot";
+    const channelLabel=doc.createElement("span");channelLabel.className="channel";channelLabel.textContent="Identificando canal…";
+    const connection=doc.createElement("span");connection.className="connection";connection.append(dot,label);
+    status.append(channelLabel,connection);controls.className="controls";
     const make=(name:string,svg:string)=>{const b=doc.createElement("button");b.type="button";b.className=name;b.innerHTML=svg;return b;};
     const discord=make("discord",icon.discord),mic=make("mic",icon.mic),audio=make("audio",icon.headphones),disconnect=make("disconnect",icon.hangup);
     controls.append(discord,mic,audio,disconnect);main.append(status,controls);doc.body.replaceChildren(main);
@@ -41,6 +46,30 @@ function openDiscontrol(): void {
     const enabled=(e:HTMLElement)=>e.getAttribute("aria-disabled")!=="true" && !(e instanceof HTMLButtonElement && e.disabled);
     const muteState=(e:HTMLElement)=>e.getAttribute("role")==="switch"?(e.getAttribute("aria-checked")==="true"?true:e.getAttribute("aria-checked")==="false"?false:null):null;
     const getName=(e:HTMLElement)=>normalize([e.getAttribute("aria-label"),e.getAttribute("title"),e.getAttribute("data-tooltip"),e.getAttribute("data-tooltip-content")].filter(Boolean).join(" "));
+
+    // Read only the active voice connection area, not arbitrary channels in the sidebar.
+    function getActiveVoiceChannel():string|null{
+      const statuses=new Set(["voz conectada","voice connected","conectado a voz","connected to voice"]);
+      const ignore=/^(?:voz conectada|voice connected|conectado a voz|connected to voice|conectar|desconectar|disconnect|connection info|informacoes da conexao)$/;
+      const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
+      let n:Node|null;
+      while((n=walker.nextNode())){
+        if(!statuses.has(normalize(n.textContent||"")))continue;
+        const title=n.parentElement;
+        if(!title||!visible(title))continue;
+        let group:HTMLElement|null=title;
+        for(let depth=0;depth<5&&group;depth++,group=group.parentElement){
+          if((group.textContent||"").trim().length>170)break;
+          const leaves=[...group.querySelectorAll<HTMLElement>("span, div, button, a, strong")]
+            .filter(e=>visible(e)&&!e.children.length)
+            .map(e=>e.textContent?.trim()||"")
+            .filter(value=>value.length>0&&value.length<=80&&!ignore.test(normalize(value)));
+          const names=[...new Set(leaves)];
+          if(names.length)return names[0];
+        }
+      }
+      return null;
+    }
     function find(which:Action):VoiceControl|null{
       for(const e of document.querySelectorAll('button,[role="button"],[role="switch"]')){
         if(!visible(e)||!enabled(e))continue;
@@ -63,7 +92,10 @@ function openDiscontrol(): void {
       if(disposed||pip.closed)return;
       const m=find("mic"),a=find("audio"),d=find("disconnect"),connected=!!d;
       dot.className="dot"+(connected?" connected":(m||a?" partial":""));
-      label.textContent=connected?"Conectado à voz":(m||a?"Conexão parcial":"Não conectado");
+      label.textContent=connected?"Conectado":(m||a?"Parcial":"Desconectado");
+      const channel=connected?getActiveVoiceChannel():null;
+      channelLabel.textContent=connected?(channel||"Canal indisponível"):"Nenhum canal";
+      channelLabel.title=connected?(channel||"Canal de voz não identificado"):"Nenhum canal conectado";
       mic.disabled=!connected||!m;audio.disabled=!connected||!a;disconnect.disabled=!connected;
       for(const [button,item,on,off] of [[mic,m,icon.mic,icon.micOff],[audio,a,icon.headphones,icon.headphonesOff]] as const){
         const muted=item?.muted===true;button.classList.toggle("muted",!!item&&muted);button.classList.toggle("unmuted",!!item&&!muted);
