@@ -27,7 +27,8 @@ Chrome 116+ e uma chamada ativa no Discord Web são necessários. A aba original
 ## Histórico
 | Versão | Alterações |
 | --- | --- |
-| **0.6.2** | Ícone final próprio com D, semicírculos e microfone desativado; PNG transparente |
+| **0.6.3** | Nome real do canal de voz extraído do texto “Canal / Servidor”, sem capturar botões como “Detalhes de Voz” |
+| 0.6.2 | Cabeçalho com nome do canal à esquerda e status à direita |
 | 0.6.0 | Identidade própria da extensão e publicação inicial no GitHub |\n| 0.5.0 | Rebranding para Discontrol by devsantos |
 | 0.4.5 | Alternativa de mascote |
 | 0.4.4 | Correção do botão de retorno ao Discord |
