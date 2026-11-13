@@ -1,44 +1,133 @@
+<div align="center">
+
 # Discontrol
 
-Extensão de Chrome independente para controlar chamadas de voz do Discord Web em uma janela Picture-in-Picture.
+**Sua chamada de voz sempre ao alcance de um clique.**
 
-**Autor:** [devsantos](https://github.com/vsantus)
+Uma extensão leve para controlar chamadas do **Discord Web** em uma janela flutuante, sem precisar alternar constantemente de aba.
 
-## Funcionalidades
-- Painel flutuante minimalista
-- Indicador de conexão
-- Ativar/silenciar microfone
-- Ativar/silenciar áudio
-- Encerrar chamada
-- Voltar à aba do Discord
+[![Versão](https://img.shields.io/badge/vers%C3%A3o-0.6.3-1A2B4C?style=flat-square)](https://github.com/vsantus/discontrol)
+[![Chrome 116+](https://img.shields.io/badge/Chrome-116%2B-4285F4?style=flat-square&logo=googlechrome&logoColor=white)](https://www.google.com/chrome/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?style=flat-square&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+[![MIT License](https://img.shields.io/badge/licen%C3%A7a-MIT-444444?style=flat-square)](./LICENSE)
 
-## Instalação
-Baixe o pacote completo `discontrol.zip`, extraia e selecione a pasta `dist` em `chrome://extensions` → **Carregar sem compactação**.
+**[Como instalar](#-instalação)** · **[Funcionalidades](#-funcionalidades)** · **[Como usar](#-como-usar)** · **[Histórico](#-histórico-de-versões)**
 
-## Desenvolvimento
+</div>
+
+---
+
+## ✨ Conheça o Discontrol
+
+O **Discontrol** traz os principais controles de uma chamada de voz para um painel compacto usando a **Document Picture-in-Picture API** do Chrome. Assim, você pode continuar programando, estudando ou navegando enquanto acompanha a conexão e controla o áudio do Discord Web.
+
+A interface mostra o **canal atual à esquerda**, o **status da conexão à direita** e quatro ações rápidas: voltar ao Discord, ativar/desativar o microfone, ativar/desativar o áudio e desconectar.
+
+### Prévia da interface
+
+| Microfone e áudio desativados | Áudio ativo, microfone desativado | Microfone e áudio ativos |
+| :---: | :---: | :---: |
+| <img src="./readme-assets/discontrol-preview-muted.png" alt="Discontrol com microfone e áudio silenciados" width="320" /> | <img src="./readme-assets/discontrol-preview-audio-on.png" alt="Discontrol com microfone silenciado e áudio ativo" width="320" /> | <img src="./readme-assets/discontrol-preview-mic-audio-on.png" alt="Discontrol com microfone e áudio ativos" width="320" /> |
+
+> Os ícones de microfone e áudio refletem os estados detectados no Discord Web. As imagens representam três combinações possíveis.
+
+## ⚡ Funcionalidades
+
+| Recurso | Como funciona |
+| --- | --- |
+| **Janela flutuante** | O painel permanece visível sobre outras janelas por meio de Picture-in-Picture. |
+| **Nome do canal** | Exibe o canal de voz conectado, quando identificado na interface do Discord. |
+| **Status da chamada** | Indica conexão detectada, detecção parcial ou chamada não identificada. |
+| **Microfone** | Ativa ou silencia o microfone com indicação visual do estado. |
+| **Áudio** | Ativa ou silencia a saída de áudio do Discord, também com indicação visual. |
+| **Desconectar** | Sai do canal de voz a partir do painel. |
+| **Voltar ao Discord** | Retorna à aba original com um clique. |
+
+## 📦 Instalação
+
+### Opção 1 — Carregar a extensão pronta
+
+1. Baixe e extraia o pacote `discontrol.zip` do projeto.
+2. Abra `chrome://extensions` no Google Chrome.
+3. Habilite o **Modo do desenvolvedor**.
+4. Clique em **Carregar sem compactação**.
+5. Selecione a pasta **`dist`**, que contém o arquivo `manifest.json`.
+6. Fixe o Discontrol na barra de extensões para facilitar o acesso.
+
+> **Importante:** selecione a pasta `dist`, e não o arquivo `.zip` ou a raiz do repositório.
+
+### Opção 2 — Compilar a partir do código-fonte
+
+**Pré-requisitos:** Node.js e npm instalados.
+
 ```bash
+# Clone o projeto
+git clone https://github.com/vsantus/discontrol.git
+cd discontrol
+
+# Instale as dependências e compile
 npm install
 npm run typecheck
 npm run build
 ```
 
-Chrome 116+ e uma chamada ativa no Discord Web são necessários. A aba original deve permanecer aberta. Os controles dependem dos atributos acessíveis da página e podem exigir ajustes após atualizações do Discord.
+Depois, carregue a pasta `dist` gerada em `chrome://extensions`.
 
-## Histórico
-| Versão | Alterações |
+## 🎮 Como usar
+
+1. Abra o [Discord Web](https://discord.com/app) no Chrome.
+2. Entre em um canal de voz.
+3. Clique no ícone do **Discontrol** na barra do navegador.
+4. Controle sua chamada pela janela flutuante.
+
+| Indicador | Significado |
 | --- | --- |
-| **0.6.3** | Nome real do canal de voz extraído do texto “Canal / Servidor”, sem capturar botões como “Detalhes de Voz” |
-| 0.6.2 | Cabeçalho com nome do canal à esquerda e status à direita |
-| 0.6.0 | Identidade própria da extensão e publicação inicial no GitHub |\n| 0.5.0 | Rebranding para Discontrol by devsantos |
-| 0.4.5 | Alternativa de mascote |
-| 0.4.4 | Correção do botão de retorno ao Discord |
-| 0.4.3 | Nomes padronizados e documentação |
-| 0.4.2 | Correção dos ícones |
-| 0.4.1 | Sincronização de áudio/microfone |
-| 0.4.0 | Interface compacta |
-| 0.3.0 | Controles por ícones |
-| 0.2.1 | Diagnóstico dos botões |
-| 0.2.0 | Primeiros controles de chamada |
-| 0.1.0 | Protótipo PiP |
+| 🟢 Verde | Controles da chamada detectados. |
+| 🟡 Amarelo | Detecção parcial dos controles. |
+| ⚪ Cinza | Nenhuma chamada detectada. |
 
-Este é um projeto independente, não afiliado nem endossado pelo Discord.
+Os controles de microfone e fones ficam destacados conforme o estado identificado na página. Se algum controle não puder ser reconhecido, ele é desabilitado para evitar ações incorretas.
+
+## 🛠️ Tecnologias
+
+- **TypeScript** — implementação da extensão e sincronização dos controles.
+- **Chrome Extensions Manifest V3** — integração com o navegador.
+- **Document Picture-in-Picture API** — janela flutuante.
+- **DOM API e MutationObserver** — observação da interface do Discord Web.
+
+O projeto não precisa de backend, banco de dados ou conta adicional.
+
+## ⚠️ Requisitos e limitações
+
+- Requer **Google Chrome 116 ou superior**.
+- Funciona **apenas no Discord Web**, não no aplicativo desktop.
+- A aba original do Discord precisa permanecer aberta enquanto o PiP estiver em uso.
+- A integração utiliza elementos e atributos acessíveis da página. Mudanças na interface ou no idioma do Discord podem exigir manutenção.
+- O nome do canal pode aparecer como indisponível quando a extensão não conseguir identificá-lo com segurança.
+- A extensão não implementa telemetria própria nem precisa enviar informações da chamada a servidores externos.
+
+## 🗒️ Histórico de versões
+
+| Versão | Principais mudanças |
+| --- | --- |
+| **0.6.3** | Correção da identificação do nome do canal pelo campo `Canal / Servidor`. |
+| **0.6.2** | Nome do canal à esquerda e status da chamada à direita. |
+| **0.6.1** | Correção do ícone de retorno ao Discord no PiP. |
+| 0.6.0 | Identidade visual própria com monograma D e microfone desativado. |
+| 0.5.0 | Rebranding do projeto para **Discontrol**, by devsantos. |
+| 0.4.x | Interface minimalista, refinamento dos ícones e sincronização dos estados de microfone/áudio. |
+| 0.3.x | Botões com ícones e evolução da detecção dos controles do Discord. |
+| 0.2.x | Primeiros controles de chamada e ferramentas de diagnóstico. |
+| 0.1.0 | Protótipo funcional de Picture-in-Picture. |
+
+## 👨‍💻 Autor
+
+Desenvolvido por **[devsantos](https://github.com/vsantus)**.
+
+Gostou do projeto? Uma ⭐ no repositório ajuda outras pessoas a encontrá-lo.
+
+## 📄 Licença e aviso legal
+
+Distribuído sob a **[licença MIT](./LICENSE)**.
+
+**Discontrol é um projeto independente e não é afiliado, patrocinado ou endossado pelo Discord.** Discord e suas marcas pertencem aos respectivos proprietários.
