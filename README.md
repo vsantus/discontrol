@@ -27,7 +27,7 @@ A interface mostra o **canal atual à esquerda**, o **status da conexão à dire
 
 | Microfone e áudio desativados | Áudio ativo, microfone desativado | Microfone e áudio ativos |
 | :---: | :---: | :---: |
-| <img src="./readme-assets/discontrol-preview-muted.png" alt="Discontrol com microfone e áudio silenciados" width="320" /> | <img src="./readme-assets/discontrol-preview-audio-on.png" alt="Discontrol com microfone silenciado e áudio ativo" width="320" /> | <img src="./readme-assets/discontrol-preview-mic-audio-on.png" alt="Discontrol com microfone e áudio ativos" width="320" /> |
+| <img src="./readme-assets/closeall.jpeg" alt="Discontrol com microfone e áudio silenciados" width="320" /> | <img src="./readme-assets/openaudio.jpeg" alt="Discontrol com microfone silenciado e áudio ativo" width="320" /> | <img src="./readme-assets/openall.jpeg" alt="Discontrol com microfone e áudio ativos" width="320" /> |
 
 > Os ícones de microfone e áudio refletem os estados detectados no Discord Web. As imagens representam três combinações possíveis.
 
