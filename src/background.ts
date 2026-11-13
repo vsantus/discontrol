@@ -1,4 +1,4 @@
-// Discontrol v0.6.2 — by devsantos
+// Discontrol v0.6.3 — by devsantos
 // Source of the Chrome extension (Manifest V3).
 function openDiscontrol(): void {
   type PipAPI = { window: Window | null; requestWindow(o:{width:number;height:number}):Promise<Window> };
@@ -47,28 +47,36 @@ function openDiscontrol(): void {
     const muteState=(e:HTMLElement)=>e.getAttribute("role")==="switch"?(e.getAttribute("aria-checked")==="true"?true:e.getAttribute("aria-checked")==="false"?false:null):null;
     const getName=(e:HTMLElement)=>normalize([e.getAttribute("aria-label"),e.getAttribute("title"),e.getAttribute("data-tooltip"),e.getAttribute("data-tooltip-content")].filter(Boolean).join(" "));
 
-    // Read only the active voice connection area, not arbitrary channels in the sidebar.
+    // Discord's voice connection details contain "Channel / Server" in this
+    // labelled, clamped text node. Avoid reading unrelated menu buttons.
     function getActiveVoiceChannel():string|null{
-      const statuses=new Set(["voz conectada","voice connected","conectado a voz","connected to voice"]);
-      const ignore=/^(?:voz conectada|voice connected|conectado a voz|connected to voice|conectar|desconectar|disconnect|connection info|informacoes da conexao)$/;
-      const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT);
-      let n:Node|null;
-      while((n=walker.nextNode())){
-        if(!statuses.has(normalize(n.textContent||"")))continue;
-        const title=n.parentElement;
-        if(!title||!visible(title))continue;
-        let group:HTMLElement|null=title;
-        for(let depth=0;depth<5&&group;depth++,group=group.parentElement){
-          if((group.textContent||"").trim().length>170)break;
-          const leaves=[...group.querySelectorAll<HTMLElement>("span, div, button, a, strong")]
-            .filter(e=>visible(e)&&!e.children.length)
-            .map(e=>e.textContent?.trim()||"")
-            .filter(value=>value.length>0&&value.length<=80&&!ignore.test(normalize(value)));
-          const names=[...new Set(leaves)];
-          if(names.length)return names[0];
+      const selector='div[data-text-variant="body-xs/medium"][class*="lineClamp1"]';
+      const candidates=[...document.querySelectorAll<HTMLElement>(selector)]
+        .filter(el=>visible(el))
+        .map(el=>({el,raw:(el.textContent||"").trim()}))
+        .filter(x=>x.raw.length>3 && x.raw.length<=160 && x.raw.includes(" / "));
+      if(!candidates.length)return null;
+
+      // When multiple candidates exist, prefer the one in the voice-connected
+      // panel. If there is no unique match, do not guess another channel name.
+      const connectionWords=["voz conectada","voice connected","connected to voice","conectado a voz"];
+      function inVoicePanel(el:HTMLElement):boolean{
+        let node:HTMLElement|null=el;
+        for(let depth=0;node&&depth<7;depth++,node=node.parentElement){
+          const text=normalize(node.textContent||"");
+          if(text.length>700)break;
+          if(connectionWords.some(word=>text.includes(word)))return true;
         }
+        return false;
       }
-      return null;
+      const scoped=candidates.filter(x=>inVoicePanel(x.el));
+      const matches=scoped.length?scoped:candidates;
+      if(matches.length!==1)return null;
+
+      const label=matches[0].raw;
+      const separator=label.lastIndexOf(" / ");
+      const channel=label.slice(0,separator).trim();
+      return channel && !/^(?:detalhes de voz|voice details)$/i.test(channel)?channel:null;
     }
     function find(which:Action):VoiceControl|null{
       for(const e of document.querySelectorAll('button,[role="button"],[role="switch"]')){
