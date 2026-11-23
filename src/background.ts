@@ -1,19 +1,20 @@
-// Discontrol v0.6.3 — by devsantos
+// Discontrol v0.7.0 — teste Micup — by devsantos
 // Source of the Chrome extension (Manifest V3).
 function openDiscontrol(): void {
   type PipAPI = { window: Window | null; requestWindow(o:{width:number;height:number}):Promise<Window> };
   type VoiceControl = { element:HTMLElement; muted:boolean|null };
   type Action = "mic" | "audio" | "disconnect";
+  const platform = location.hostname === "discord.com" ? "Discord" : "Micup";
   const api=(window as Window & { documentPictureInPicture?:PipAPI }).documentPictureInPicture;
   if (!api) { alert("Discontrol requer Chrome 116+."); return; }
   if (api.window && !api.window.closed) { api.window.focus(); return; }
   // Request the window synchronously while the extension click activation is valid.
-  const opening=api.requestWindow({width:322,height:150});
+  const opening=api.requestWindow({width:267,height:100});
   void opening.then(pip=>{
-    const doc=pip.document; doc.title="Discontrol";
+    const doc=pip.document; doc.title=`Discontrol · ${platform}`;
     const css=doc.createElement("style");css.textContent=`
-      *{box-sizing:border-box}html,body{margin:0;background:#101116;color:#f2f3f5;font:12px system-ui,sans-serif}
-      body{padding:10px}main{background:#191b22;border:1px solid #2b2e39;border-radius:14px;padding:12px 13px;display:grid;gap:13px}
+      *{box-sizing:border-box}html,body{margin:0;background:#000;color:#f2f3f5;font:12px system-ui,sans-serif}
+      body{padding:12px}main{display:grid;gap:13px}
       .status{display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:11px;color:#bec4cf;min-height:14px;min-width:0}
       .channel{display:block;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#f2f3f5;font-size:11px;font-weight:600;text-align:left}
       .connection{display:flex;align-items:center;gap:6px;flex:none;white-space:nowrap;font-size:10px}
@@ -33,6 +34,10 @@ function openDiscontrol(): void {
       headphonesOff:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14v-2a8 8 0 0 1 16 0v2M4 14h4v7H6a2 2 0 0 1-2-2v-5ZM20 14h-4v7h2a2 2 0 0 0 2-2v-5Z"/><path d="M3 3 21 21" stroke="#38252c" stroke-width="5"/><path d="M3 3 21 21" stroke="currentColor" stroke-width="2"/></svg>',
       hangup:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3.3 11.5c4.8-4.6 12.6-4.6 17.4 0 1 .9 1 2.2.1 3l-1.8 1.6c-.7.6-1.7.6-2.4 0l-1.5-1.4a1.7 1.7 0 0 1-.5-1.4l.1-1.4a10 10 0 0 0-5.4 0l.1 1.4a1.7 1.7 0 0 1-.5 1.4l-1.5 1.4c-.7.6-1.7.6-2.4 0l-1.8-1.6c-.9-.8-.9-2.1.1-3Z"/></svg>'
     };
+    if (platform === "Micup") {
+      // Neutral service navigation icon for the Micup panel.
+      icon.discord = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-3M14 3h7v7M10 14 21 3"/></svg>';
+    }
     const main=doc.createElement("main"), status=doc.createElement("div"), dot=doc.createElement("span"), label=doc.createElement("span"), controls=doc.createElement("div");
     status.className="status";dot.className="dot";
     const channelLabel=doc.createElement("span");channelLabel.className="channel";channelLabel.textContent="Identificando canal…";
@@ -78,7 +83,7 @@ function openDiscontrol(): void {
       const channel=label.slice(0,separator).trim();
       return channel && !/^(?:detalhes de voz|voice details)$/i.test(channel)?channel:null;
     }
-    function find(which:Action):VoiceControl|null{
+    function findDiscordControl(which:Action):VoiceControl|null{
       for(const e of document.querySelectorAll('button,[role="button"],[role="switch"]')){
         if(!visible(e)||!enabled(e))continue;
         const l=getName(e), isSwitch=e.getAttribute("role")==="switch";
@@ -95,13 +100,81 @@ function openDiscontrol(): void {
       }
       return null;
     }
+    interface VoiceAdapter {
+      find(action: Action): VoiceControl | null;
+      getChannel(): string | null;
+      isConnected(): boolean;
+    }
+
+    // Micup exposes pressed=true for muted controls in the call toolbar.
+    // The user-area controls remain available when another channel is selected.
+    function findMicupControl(action: Action): VoiceControl | null {
+      const selectors = action === "disconnect"
+        ? ['[class*="VoiceConnectionStatus.module__"] button[aria-label]',
+           '[class*="VoiceControlBar.module__"] button[aria-label]']
+        : ['[class*="VoiceControlBar.module__"] button[aria-label]',
+           '[class*="UserArea.module__"] button[aria-label]'];
+      const labels = {
+        mic: {
+          mute: /^(silenciar|silenciar microfone|desativar microfone|mute|mute microphone|turn off microphone)$/,
+          unmute: /^(reativar microfone|ativar microfone|ligar microfone|unmute|unmute microphone|turn on microphone)$/
+        },
+        audio: {
+          mute: /^(desativar audio|desativar audio para mim|silenciar audio|deafen|disable audio)$/,
+          unmute: /^(ativar audio|ativar audio para mim|reativar audio|reativar audio para mim|undeafen|enable audio)$/
+        }
+      };
+      for (const selector of selectors) {
+        for (const element of document.querySelectorAll<HTMLElement>(selector)) {
+          if (!visible(element) || !enabled(element)) continue;
+          const name = normalize(element.getAttribute("aria-label") || "");
+          if (action === "disconnect") {
+            if (/^(desconectar|disconnect|sair da chamada|leave call)$/.test(name)) {
+              return { element, muted: null };
+            }
+            continue;
+          }
+          const pattern = labels[action];
+          if (!pattern.mute.test(name) && !pattern.unmute.test(name)) continue;
+          const pressed = element.getAttribute("aria-pressed");
+          return {
+            element,
+            muted: pressed === "true" ? true : pressed === "false" ? false : pattern.unmute.test(name)
+          };
+        }
+      }
+      return null;
+    }
+
+    function getMicupChannel(): string | null {
+      const element = document.querySelector<HTMLElement>(
+        '[data-flx="voice.voice-connection-status.voice-connection-status-inner.channel-source-channel"],'
+        + '[class*="VoiceConnectionStatus.module__channelSourceChannel"]'
+      );
+      return element && visible(element) ? element.textContent?.trim() || null : null;
+    }
+
+    const discordAdapter: VoiceAdapter = {
+      find: findDiscordControl,
+      getChannel: getActiveVoiceChannel,
+      isConnected: () => !!findDiscordControl("disconnect")
+    };
+    const micupAdapter: VoiceAdapter = {
+      find: findMicupControl,
+      getChannel: getMicupChannel,
+      isConnected: () => {
+        const status = document.querySelector('[class*="VoiceConnectionStatus.module__statusConnected"]');
+        return !!status && visible(status) && !!findMicupControl("disconnect");
+      }
+    };
+    const adapter = platform === "Discord" ? discordAdapter : micupAdapter;
     let disposed=false, timer:number|undefined;
     function refresh(){
       if(disposed||pip.closed)return;
-      const m=find("mic"),a=find("audio"),d=find("disconnect"),connected=!!d;
+      const m=adapter.find("mic"),a=adapter.find("audio"),connected=adapter.isConnected();
       dot.className="dot"+(connected?" connected":(m||a?" partial":""));
       label.textContent=connected?"Conectado":(m||a?"Parcial":"Desconectado");
-      const channel=connected?getActiveVoiceChannel():null;
+      const channel=connected?adapter.getChannel():null;
       channelLabel.textContent=connected?(channel||"Canal indisponível"):"Nenhum canal";
       channelLabel.title=connected?(channel||"Canal de voz não identificado"):"Nenhum canal conectado";
       mic.disabled=!connected||!m;audio.disabled=!connected||!a;disconnect.disabled=!connected;
@@ -111,13 +184,13 @@ function openDiscontrol(): void {
         const title=!item?"Indisponível":muted?"Ativar":"Silenciar";button.title=title;button.setAttribute("aria-label",title);
       }
       disconnect.title="Desconectar";disconnect.setAttribute("aria-label","Desconectar");
-      discord.title="Voltar ao Discord";discord.setAttribute("aria-label","Voltar ao Discord");
+      discord.title=`Voltar ao ${platform}`;discord.setAttribute("aria-label",`Voltar ao ${platform}`);
     }
     function schedule(){if(timer!==undefined)clearTimeout(timer);timer=window.setTimeout(refresh,120);}
-    function trigger(action:Action){const target=find(action);if(!target){refresh();return;}target.element.click();schedule();setTimeout(refresh,500);}
+    function trigger(action:Action){const target=adapter.isConnected()?adapter.find(action):null;if(!target){refresh();return;}target.element.click();schedule();setTimeout(refresh,500);}
     discord.addEventListener("click",()=>window.focus());mic.addEventListener("click",()=>trigger("mic"));audio.addEventListener("click",()=>trigger("audio"));disconnect.addEventListener("click",()=>trigger("disconnect"));
     const observer=new MutationObserver(schedule);
-    observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:["aria-label","aria-checked","title","disabled","aria-disabled","data-tooltip-content"]});
+    observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:["aria-label","aria-checked","aria-pressed","class","title","disabled","aria-disabled","data-tooltip-content"]});
     const poll=window.setInterval(refresh,1200);
     pip.addEventListener("pagehide",()=>{disposed=true;observer.disconnect();clearInterval(poll);if(timer!==undefined)clearTimeout(timer);},{once:true});
     refresh();
@@ -130,6 +203,8 @@ declare const chrome:{
 chrome.action.onClicked.addListener(tab=>{
   if(!tab.id||!tab.url)return;
   let u:URL;try{u=new URL(tab.url);}catch{return;}
-  if(u.hostname!=="discord.com"||!(u.pathname==="/app"||u.pathname.startsWith("/channels")))return;
+  const supportedHost = u.hostname === "discord.com" || u.hostname === "micup.gg";
+  const supportedPath = u.pathname === "/app" || u.pathname === "/channels" || u.pathname.startsWith("/channels/");
+  if(u.protocol !== "https:" || !supportedHost || !supportedPath)return;
   void chrome.scripting.executeScript({target:{tabId:tab.id},world:"MAIN",func:openDiscontrol}).catch(console.error);
 });

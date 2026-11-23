@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "Discontrol",
-  "description": "Controle chamadas do Discord Web em uma janela flutuante. Projeto independente por devsantos.",
-  "version": "0.6.3",
+  "description": "Controle chamadas do Discord Web e Micup em uma janela flutuante. Versão de teste por devsantos.",
+  "version": "0.7.0",
   "minimum_chrome_version": "116",
   "permissions": [
     "activeTab",
@@ -25,5 +25,6 @@
   "background": {
     "service_worker": "background.js",
     "type": "module"
-  }
+  },
+  "version_name": "0.7.0-test.3"
 }
