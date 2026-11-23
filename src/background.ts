@@ -23,7 +23,7 @@ function openDiscontrol(): void {
       button{border:1px solid #363a48;background:#252934;color:#eef0f4;border-radius:12px;min-width:0;height:48px;padding:0;display:grid;place-items:center;cursor:pointer}
       button:hover:not(:disabled){filter:brightness(1.15)}button:focus-visible{outline:2px solid #8a96ff;outline-offset:2px}
       button:disabled{opacity:.3;cursor:not-allowed}button svg{width:22px;height:22px} button .discordLogo{width:27px;height:27px;object-fit:contain;display:block}
-      button.discord{background:#343d80;border-color:#4f5ed0}button.muted{background:#38252c;border-color:#7e3b4a;color:#ff8799}
+      button.discord{background:#343d80;border-color:#4f5ed0}button.micup .discordLogo{width:40px;height:40px}button.muted{background:#38252c;border-color:#7e3b4a;color:#ff8799}
       button.unmuted{background:#1d3530;border-color:#346f58;color:#91e7ba}button.disconnect{background:#522229;border-color:#9b3947;color:#ffd5db}
     `;doc.head.append(css);
     const icon={
@@ -45,6 +45,7 @@ function openDiscontrol(): void {
     status.append(channelLabel,connection);controls.className="controls";
     const make=(name:string,svg:string)=>{const b=doc.createElement("button");b.type="button";b.className=name;b.innerHTML=svg;return b;};
     const discord=make("discord",icon.discord),mic=make("mic",icon.mic),audio=make("audio",icon.headphones),disconnect=make("disconnect",icon.hangup);
+    if (platform === "Micup") discord.classList.add("micup");
     controls.append(discord,mic,audio,disconnect);main.append(status,controls);doc.body.replaceChildren(main);
     const normalize=(s:string)=>s.toLocaleLowerCase("pt-BR").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/\s+/g," ").trim();
     const visible=(e:Element):e is HTMLElement=>e instanceof HTMLElement && getComputedStyle(e).display!=="none" && getComputedStyle(e).visibility!=="hidden" && e.getClientRects().length>0 && e.getAttribute("aria-hidden")!=="true";
