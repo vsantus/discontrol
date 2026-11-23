@@ -26,5 +26,5 @@
     "service_worker": "background.js",
     "type": "module"
   },
-  "version_name": "0.7.0-test.5"
+  "version_name": "0.7.0-test.6"
 }
